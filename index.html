@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>How Well Do You Know Me?</title>
+    
+    <!-- PWA Links -->
+    <link rel="manifest" href="manifest.json">
+    <script>
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js').catch(() => {});
+      }
+    </script>
+
+    <style>
+        :root {
+            --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
+            --card-bg: #1e293b;
+            --card-inner: #0f172a;
+            --border-gold: #fbbf24;
+            --accent: #f43f5e;
+            --accent-hover: #e11d48;
+            --accent-glow: rgba(244, 63, 94, 0.25);
+            --text: #f8fafc;
+            --text-muted: #94a3b8;
+            --success: #22c55e;
+            --error: #ef4444;
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--bg-gradient);
+            color: var(--text);
+            margin: 0;
+            padding: 1.5rem 1rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .classic-frame {
+            width: 100%;
+            max-width: 500px;
+            background: var(--card-bg);
+            padding: 1.75rem 1.5rem;
+            border-radius: 24px;
+            border: 3px solid var(--border-gold);
+            outline: 6px solid #334155;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7), inset 0 0 15px rgba(251, 191, 36, 0.15);
+            position: relative;
+        }
+
+        .header-title {
+            text-align: center;
+            color: #fbbf24;
+            font-size: 1.85rem;
+            font-weight: 800;
+            margin: 0 0 0.4rem 0;
+            letter-spacing: 0.5px;
+            text-shadow: 0 2px 10px rgba(251, 191, 36, 0.2);
+        }
+
+        .header-sub {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            margin: 0 0 1.25rem 0;
+            line-height: 1.4;
+        }
+
+        .instruction-card {
+            background: rgba(15, 23, 42, 0.85);
+            border: 1px dashed var(--border-gold);
+            border-radius: 14px;
+            padding: 1rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .instruction-card h3 {
+            margin: 0 0 0.5rem 0;
+            font-size: 0.95rem;
+            color: #fbbf24;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .instruction-steps {
+            margin: 0;
+            padding-left: 1.2rem;
+            color: #cbd5e1;
+            font-size: 0.88rem;
+            line-height: 1.5;
+        }
+
+        .instruction-steps li {
+            margin-bottom: 0.3rem;
+        }
+
+        label {
+            font-weight: 600;
+            font-size: 0.9rem;
+            display: block;
+            margin-bottom: 0.4rem;
+            color: #fbbf24;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 0.85rem;
+            margin-bottom: 1rem;
+            border-radius: 10px;
+            border: 1px solid #475569;
+            background: var(--card-inner);
+            color: white;
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        input:focus, select:focus {
+            border-color: #fbbf24;
+            box-shadow: 0 0 8px rgba(251, 191, 36, 0.3);
+        }
+
+        .progress-container {
+            margin-bottom: 1.25rem;
+        }
+
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            margin-bottom: 0.4rem;
+            font-weight: 600;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: #0f172a;
+            border-radius: 4px;
+            overflow: hidden;
+            border: 1px solid #334155;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #f43f5e, #fbbf24);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .q-block {
+            background: var(--card-inner);
+            padding: 1.1rem;
+            border-radius: 14px;
+            margin-bottom: 1rem;
+            border: 1px solid #334155;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .q-title {
+            font-weight: 600;
+            margin-bottom: 0.85rem;
+            font-size: 1rem;
+            line-height: 1.45;
+            color: #f1f5f9;
+        }
+
+        .btn-option {
+            width: 100%;
+            padding: 0.85rem 1rem;
+            margin-bottom: 0.5rem;
+            background: #1e293b;
+            border: 1px solid #475569;
+            color: white;
+            border-radius: 10px;
+            font-size: 0.92rem;
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .btn-option:last-child {
+            margin-bottom: 0;
+        }
+
+        .btn-option.selected {
+            background: var(--accent);
+            border-color: var(--accent);
+            font-weight: 700;
+            box-shadow: 0 4px 12px var(--accent-glow);
+        }
+
+        .btn-main {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, #f43f5e, #e11d48);
+            border: 1px solid #fbbf24;
+            color: white;
+            font-size: 1.05rem;
+            font-weight: 700;
+            border-radius: 12px;
+            cursor: pointer;
+            margin-top: 1rem;
+            box-shadow: 0 4px 15px rgba(244, 63, 94, 0.4);
+            transition: all 0.2s ease;
+        }
+
+        .btn-main:active {
+            transform: scale(0.98);
+        }
+
+        .btn-secondary {
+            background: #334155;
+            border-color: #475569;
+            box-shadow: none;
+            margin-top: 0.5rem;
+        }
+
+        .btn-whatsapp {
+            background: #25D366;
+            border-color: #20ba5a;
+            box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3);
+        }
+
+        .hidden { display: none !important; }
+
+        .score-box {
+            text-align: center;
+            font-size: 3.2rem;
+            font-weight: 800;
+            color: #fbbf24;
+            margin: 1rem 0;
+            text-shadow: 0 0 20px rgba(251, 191, 36, 0.3);
+        }
+
+        .review-list {
+            margin-top: 1.5rem;
+            text-align: left;
+            max-height: 250px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        .review-item {
+            background: var(--card-inner);
+            padding: 0.85rem;
+            border-radius: 10px;
+            margin-bottom: 0.6rem;
+            font-size: 0.88rem;
+            border-left: 4px solid #334155;
+        }
+
+        .review-item.correct { border-left-color: var(--success); }
+        .review-item.incorrect { border-left-color: var(--error); }
+
+        .review-q { font-weight: 600; margin-bottom: 0.3rem; }
+        .review-a { color: var(--text-muted); font-size: 0.82rem; }
+    </style>
+</head>
+<body>
+
+<div class="classic-frame">
+    <!-- VIEW 1: CREATOR MODE -->
+    <div id="creatorView">
+        <h1 class="header-title">How Well Do You Know Me?</h1>
+        <p class="header-sub">Test how deeply your partner or best friends truly know your personality!</p>
+        
+        <div class="instruction-card">
+            <h3>📜 How to Play (3 Simple Steps):</h3>
+            <ol class="instruction-steps">
+                <li><strong>Enter your details</strong> (Name & Gender).</li>
+                <li><strong>Answer 10 questions</strong> honestly about yourself.</li>
+                <li><strong>Share your generated link</strong> with your partner or friends on WhatsApp!</li>
+            </ol>
+        </div>
+
+        <label for="creatorName">Your Name:</label>
+        <input type="text" id="creatorName" placeholder="e.g. Alex" />
+        
+        <label for="creatorGender">Your Gender:</label>
+        <select id="creatorGender">
+            <option value="male">Male (He / Him)</option>
+            <option value="female">Female (She / Her)</option>
+        </select>
+        
+        <div class="progress-container">
+            <div class="progress-label">
+                <span>QUIZ PROGRESS</span>
+                <span id="progressText">0 / 10 Answered</span>
+            </div>
+            <div class="progress-bar"><div id="progressFill" class="progress-fill"></div></div>
+        </div>
+
+        <div id="questionsContainer"></div>
+
+        <button type="button" class="btn-main btn-secondary" onclick="shuffleAndRender()">Shuffle Questions 🎲</button>
+        <button type="button" class="btn-main" onclick="generateLink()">Create My Quiz Link 🚀</button>
+    </div>
+
+    <!-- VIEW 2: SHARE LINK VIEW -->
+    <div id="shareView" class="hidden">
+        <h1 class="header-title">Your Quiz is Live!</h1>
+        <p class="header-sub">Send this link to your partner or friends to see who knows you best:</p>
+        
+        <input type="text" id="shareUrl" readonly />
+        <button type="button" class="btn-main btn-whatsapp" onclick="shareWhatsApp()">Share on WhatsApp 💬</button>
+        <button type="button" class="btn-main" style="background:#475569; border-color:#64748b;" onclick="copyLink()">Copy Quiz Link 📋</button>
+        <button type="button" class="btn-main btn-secondary" onclick="testLinkLocally()">Test Playing My Own Quiz 🎮</button>
+    </div>
+
+    <!-- VIEW 3: FRIEND TAKER MODE -->
+    <div id="takerView" class="hidden">
+        <h1 class="header-title" id="takerTitle">How Well Do You Know...?</h1>
+        <p class="header-sub">Guess their answers correctly to see your match score!</p>
+        
+        <div class="instruction-card">
+            <h3>📜 Directions for Quiz Taker:</h3>
+            <ol class="instruction-steps">
+                <li>Type your name below so they know who took the quiz.</li>
+                <li>Guess what <strong>THEY answered</strong> for all 10 questions.</li>
+                <li>Tap <strong>Submit Answers</strong> to reveal your score!</li>
+            </ol>
+        </div>
+
+        <label for="friendName">Your Name:</label>
+        <input type="text" id="friendName" placeholder="e.g. Jordan" />
+        
+        <div class="progress-container">
+            <div class="progress-label">
+                <span>YOUR GUESSES</span>
+                <span id="takerProgressText">0 / 10 Guessed</span>
+            </div>
+            <div class="progress-bar"><div id="takerProgressFill" class="progress-fill"></div></div>
+        </div>
+
+        <div id="quizContainer"></div>
+        <button type="button" class="btn-main" onclick="calculateScore()">Submit Answers 🎯</button>
+    </div>
+
+    <!-- VIEW 4: RESULTS VIEW -->
+    <div id="resultView" class="hidden">
+        <h1 class="header-title">Final Match Score</h1>
+        <div class="score-box" id="finalScore">0 / 10</div>
+        <p class="header-sub" id="scoreMessage" style="font-weight: 600; font-size: 1.05rem; color: #f8fafc;"></p>
+        
+        <div class="review-list" id="reviewContainer"></div>
+
+        <button type="button" class="btn-main" onclick="resetApp()">Create Your Own Quiz 🚀</button>
+    </div>
+</div>
+
+<script>
+    function utf8_to_b64(str) {
+        return window.btoa(unescape(encodeURIComponent(str)));
+    }
+
+    function b64_to_utf8(str) {
+        return decodeURIComponent(escape(window.atob(str)));
+    }
+
+    const allQuestions = [
+        { q: "What is {my} favorite time of day?", options: ["Early Morning 🌅", "Night Owl 🌙"] },
+        { q: "How {does_do} {i} react when {i} {get_gets} angry?", options: ["Stay Quiet 🤐", "Vent out loud 🗣️", "Blast Music 🎧"] },
+        { q: "What is {my} go-to food choice?", options: ["Spicy / Fast Food 🍕", "Sweet Treats 🎂", "Home Cooked Meal 🍲"] },
+        { q: "What is {my} biggest superpower in a group?", options: ["Making people laugh 😂", "Giving best advice 💡", "Planning cool hangouts 📌", "Keeping secrets 🤫"] },
+        { q: "What would {i} do if {i} won $1 Million today?", options: ["Travel the world ✈️", "Buy dream house & car 🚘", "Invest it quietly 💰", "Party with friends 🎉"] },
+        { q: "How long can {i} survive without looking at {my} phone?", options: ["Less than 10 mins 📱", "An hour or two ⏱️", "Half a day 🌤️", "I forget it exists 🧘"] },
+        { q: "What movie genre {does_do} {i} prefer?", options: ["Action / Thriller 💣", "Comedy 🍿", "Horror 👻", "Romance / Drama ❤️"] },
+        { q: "How {does_do} {i} handle texting back?", options: ["Reply in 2 secs ⚡", "Take 2-3 hours 🐢", "Read & reply next day 😴", "Leave on read by mistake 💀"] },
+        { q: "In a zombie apocalypse, what is {my} role?", options: ["Fearless leader 🗡️", "Strategist who hides 🧠", "First one eaten 🧟", "Joker keeping morale up 🃏"] },
+        { q: "What is {my} biggest pet peeve?", options: ["Loud chewers 🍔", "Slow walkers 🚶", "People being late ⏰", "Fake people 🎭"] },
+        { q: "Am {i} usually early or late?", options: ["15 mins early ⏰", "Right on time 🎯", "5-10 mins late 🚶", "An hour late 🙈"] },
+        { q: "What is {my} ideal hangout spot?", options: ["Fancy restaurant 🍷", "Stargazing picnic 🌌", "Gaming arcade 🎢", "Home with snacks 🍕"] },
+        { q: "If {i} could have any superpower, what would it be?", options: ["Invisibility 🫥", "Teleportation 🌌", "Mind Reading 🧠", "Time Travel ⏳"] },
+        { q: "Is {i_pronoun} a tea person or a coffee person?", options: ["Strong Coffee ☕", "Refreshing Tea 🍵", "Boba / Milkshake 🧋", "Just Water 💧"] },
+        { q: "What kind of music {does_do} {i} listen to most?", options: ["Pop / Hit Chart 🎵", "Hip-Hop / Rap 🎙️", "Lo-Fi / Chill 🎧", "Rock / Heavy Metal 🎸"] },
+        { q: "How {does_do} {i} deal with sadness?", options: ["Sleep all day 😴", "Talk to a close friend 🗣️", "Watch movies & eat 🍿", "Go for a long walk 🎧"] },
+        { q: "Is {i_pronoun} better at saving money or spending money?", options: ["Pro Saver 💰", "Impulse Shopper 🛍️", "Balanced ⚖️"] },
+        { q: "What is {my} dream travel destination?", options: ["Tokyo, Japan 🗼", "Paris, France 🗼", "Bali, Indonesia 🏝️", "New York, USA 🗽"] },
+        { q: "If {i} was an animal, what would {i} be?", options: ["Lazy Panda 🐼", "Loyal Dog 🐶", "Independent Cat 🐱", "Wild Eagle 🦅"] },
+        { q: "What season {does_do} {i} love the most?", options: ["Warm Summer ☀️", "Cozy Winter ❄️", "Rainy Season 🌧️", "Pleasant Autumn 🍁"] },
+        { q: "How {does_do} {i} act when meeting someone new?", options: ["Super Shy 🙈", "Instant Best Friend 🎉", "Observant & Chill 🧐"] },
+        { q: "What is {my} guilty pleasure?", options: ["Bingeing reality TV 📺", "Late-night snacking 🍪", "Online window shopping 🛒", "Sleeping 12 hours 🛌"] },
+        { q: "Would {i} survive 3 days alone in a jungle?", options: ["Easy victory 🏕️", "I would cry in 10 minutes 😭", "I'd make friends with monkeys 🐒"] },
+        { q: "What fashion style {does_do} {i} prefer?", options: ["Oversized & Comfortable 🛌", "Trendy & Stylish ✨", "Classic & Simple 👕", "Sports / Activewear 👟"] },
+        { q: "How {does_do} {i} make big decisions?", options: ["Follow gut / heart ❤️", "Analyze logically 🧠", "Ask 10 friends for advice 🗣️", "Flip a coin 🪙"] },
+        { q: "What is {my} favorite sleep position?", options: ["On my side 🛌", "Flat on my back 🧘", "Hugging a pillow 🧸", "Tossing and turning 🔄"] },
+        { q: "Does {i_pronoun} prefer indoor gaming or outdoor sports?", options: ["Indoor Video / Board games 🎮", "Outdoor Sports ⚽", "Neither, just chilling 🛋️"] },
+        { q: "How clean is {my} bedroom usually?", options: ["Spotless & organized ✨", "Organized chaos 📦", "Messy, but knows where stuff is 😅"] },
+        { q: "If {i} got a tattoo, what style would it be?", options: ["Minimalist symbol 🖋️", "Meaningful quote 📜", "Cool dragon/animal 🐉", "No tattoos 🚫"] },
+        { q: "Is {i_pronoun} a dog person or a cat person?", options: ["Dog lover 🐶", "Cat lover 🐱", "Love both 🐾", "Neither 🙅"] },
+        { q: "How {does_do} {i} react to jumpscares in horror movies?", options: ["Scream loudly 😱", "Don't even flinch 😎", "Cover eyes the whole time 🫣"] },
+        { q: "What is {my} favorite meal of the day?", options: ["Breakfast 🥞", "Lunch 🍱", "Dinner 🍲", "Late night snack 🍕"] },
+        { q: "If {i} could speak another language fluently, which one?", options: ["Spanish 🇪🇸", "Japanese 🇯🇵", "French 🇫🇷", "Korean 🇰🇷"] },
+        { q: "Does {i_pronoun} prefer texting or calling?", options: ["Strictly Texting 💬", "Voice / Video Calls 📞", "Voice Notes 🎙️"] },
+        { q: "How {does_do} {i} feel about cooking?", options: ["Master Chef 🧑‍🍳", "Can make instant noodles 🍜", "Burns everything 🙈"] },
+        { q: "What type of shoes {does_do} {i} wear the most?", options: ["Sneakers 👟", "Sandals / Crocs 🩴", "Boots 🥾", "Formal shoes 👞"] },
+        { q: "Is {i_pronoun} good at keeping secrets?", options: ["Vault level secret keeper 🔐", "Tries, but slips up 😅", "Don't tell them anything 🤐"] },
+        { q: "What is {my} favorite dessert category?", options: ["Chocolate everything 🍫", "Ice Cream 🍦", "Cakes & Pastries 🍰", "Fruit desserts 🍓"] },
+        { q: "Does {i_pronoun} like roller coasters?", options: ["Loves the adrenaline 🎢", "Scared to death 😨", "Will go if forced 😅"] },
+        { q: "How many alarms {does_do} {i} set to wake up?", options: ["Just 1 alarm ⏰", "5 alarms 5 mins apart 🚨", "Someone has to wake them 😴"] },
+        { q: "What is {my} favorite topic to talk about?", options: ["Movies & Pop culture 🎬", "Deep life mysteries 🌌", "Funny personal stories 😂", "Tech & Gaming 🎮"] },
+        { q: "Is {i_pronoun} a planner or spontaneous?", options: ["Plan every detail 📝", "Go with the flow 🌊", "Mix of both 🔀"] },
+        { q: "How {does_do} {i} handle confrontation?", options: ["Address it directly 💥", "Avoid it at all costs 🏃", "Write a long message 📝"] },
+        { q: "What is {my} favorite smell?", options: ["Fresh rain 🌧️", "Vanilla / Bakery 🧁", "Fresh coffee ☕", "Perfume / Cologne 🌸"] },
+        { q: "Does {i_pronoun} prefer books or movies?", options: ["Movies / Series 🎬", "Books / Novels 📚", "Anime / Cartoons 🎨", "Neither 🤷"] },
+        { q: "Is {i_pronoun} good with kids?", options: ["Natural kid magnet 👶", "Awkward but friendly 😅", "Stays away 🙈"] },
+        { q: "What kind of birthday person is {i_pronoun}?", options: ["Huge party with everyone 🎉", "Small dinner with close friends 🍽️", "Turn off phone & chill alone 🤫"] },
+        { q: "How fast {does_do} {i} get ready to leave the house?", options: ["10 minutes max ⚡", "30 minutes ⏱️", "1+ hour minimum 💄"] },
+        { q: "What would {i} do if {i} found $100 on the floor?", options: ["Keep it immediately 💵", "Look around for who dropped it 🧐", "Treat friends 🍟"] },
+        { q: "What describes {my} personality best in one word?", options: ["Funny 🤪", "Kind 💖", "Smart 🧠", "Chill 😎"] }
+    ];
+
+    let currentSelectedQuestions = [];
+    let creatorAnswers = {};
+    let friendGuesses = {};
+
+    window.onload = () => {
+        checkHashMode();
+    };
+
+    window.onhashchange = () => {
+        checkHashMode();
+    };
+
+    function checkHashMode() {
+        if (window.location.hash && window.location.hash.length > 1) {
+            document.getElementById('creatorView').classList.add('hidden');
+            document.getElementById('shareView').classList.add('hidden');
+            document.getElementById('resultView').classList.add('hidden');
+            document.getElementById('takerView').classList.remove('hidden');
+            loadTakerQuiz();
+        } else {
+            document.getElementById('takerView').classList.add('hidden');
+            document.getElementById('shareView').classList.add('hidden');
+            document.getElementById('resultView').classList.add('hidden');
+            document.getElementById('creatorView').classList.remove('hidden');
+            shuffleAndRender();
+        }
+    }
+
+    function formatQuestion(qText, mode, gender = 'male') {
+        if (mode === 'creator') {
+            return qText
+                .replace(/{my}/g, "my")
+                .replace(/{My}/g, "My")
+                .replace(/{i}/g, "I")
+                .replace(/{i_pronoun}/g, "I")
+                .replace(/{me}/g, "me")
+                .replace(/{does_do}/g, "do")
+                .replace(/{get_gets}/g, "get");
+        } else {
+            let myPronoun = (gender === 'female') ? 'her' : 'his';
+            let iPronoun = (gender === 'female') ? 'she' : 'he';
+            let mePronoun = (gender === 'female') ? 'her' : 'him';
+
+            return qText
+                .replace(/{my}/g, myPronoun)
+                .replace(/{My}/g, myPronoun.charAt(0).toUpperCase() + myPronoun.slice(1))
+                .replace(/{i}/g, iPronoun)
+                .replace(/{i_pronoun}/g, iPronoun)
+                .replace(/{me}/g, mePronoun)
+                .replace(/{does_do}/g, "does")
+                .replace(/{get_gets}/g, "gets");
+        }
+    }
+
+    function shuffleAndRender() {
+        const shuffled = [...allQuestions].sort(() => 0.5 - Math.random());
+        currentSelectedQuestions = shuffled.slice(0, 10);
+        creatorAnswers = {};
+        updateProgress();
+
+        const container = document.getElementById('questionsContainer');
+        container.innerHTML = currentSelectedQuestions.map((q, qIdx) => `
+            <div class="q-block">
+                <div class="q-title">${qIdx + 1}. ${formatQuestion(q.q, 'creator')}</div>
+                ${q.options.map((opt, oIdx) => `
+                    <button type="button" class="btn-option q-${qIdx}" onclick="selectAnswer(${qIdx}, ${oIdx})">
+                        <span>${opt}</span>
+                    </button>
+                `).join('')}
+            </div>
+        `).join('');
+    }
+
+    function selectAnswer(qIdx, oIdx) {
+        creatorAnswers[qIdx] = oIdx;
+        document.querySelectorAll(`.q-${qIdx}`).forEach((btn, idx) => {
+            btn.classList.toggle('selected', idx === oIdx);
+        });
+        updateProgress();
+    }
+
+    function updateProgress() {
+        const count = Object.keys(creatorAnswers).length;
+        const fillPercent = (count / 10) * 100;
+        document.getElementById('progressFill').style.width = fillPercent + '%';
+        document.getElementById('progressText').innerText = `${count} / 10 Answered`;
+    }
+
+    function generateLink() {
+        const name = document.getElementById('creatorName').value.trim();
+        const gender = document.getElementById('creatorGender').value;
+
+        if (!name) {
+            alert("Please enter your name first!");
+            return;
+        }
+
+        const count = Object.keys(creatorAnswers).length;
+        if (count < 10) {
+            alert(`Please answer all 10 questions! You answered ${count}/10.`);
+            return;
+        }
+
+        try {
+            const data = {
+                name: name,
+                gender: gender,
+                questions: currentSelectedQuestions,
+                answers: creatorAnswers
+            };
+
+            const jsonStr = JSON.stringify(data);
+            const encoded = encodeURIComponent(utf8_to_b64(jsonStr));
+
+            let baseUrl = window.location.href.split('#')[0];
+            if (!baseUrl || baseUrl === 'about:blank') {
+                baseUrl = "https://srabhidev1234-cmyk.github.io/math-master/";
+            }
+
+            const fullUrl = `${baseUrl}#${encoded}`;
+
+            document.getElementById('creatorView').classList.add('hidden');
+            document.getElementById('shareView').classList.remove('hidden');
+            document.getElementById('shareUrl').value = fullUrl;
+        } catch (e) {
+            alert("Error creating link: " + e.message);
+        }
+    }
+
+    function testLinkLocally() {
+        const url = document.getElementById('shareUrl').value;
+        const hashPos = url.indexOf('#');
+        if (hashPos !== -1) {
+            window.location.hash = url.substring(hashPos);
+        }
+    }
+
+    function loadTakerQuiz() {
+        try {
+            const rawHash = decodeURIComponent(window.location.hash.substring(1));
+            const decodedStr = b64_to_utf8(rawHash);
+            const decoded = JSON.parse(decodedStr);
+            window.quizData = decoded;
+            friendGuesses = {};
+            updateTakerProgress();
+            
+            const gender = decoded.gender || 'male';
+            document.getElementById('takerTitle').innerText = `How Well Do You Know ${decoded.name}?`;
+            
+            const container = document.getElementById('quizContainer');
+            container.innerHTML = decoded.questions.map((q, qIdx) => `
+                <div class="q-block">
+                    <div class="q-title">${qIdx + 1}. ${formatQuestion(q.q, 'taker', gender)}</div>
+                    ${q.options.map((opt, oIdx) => `
+                        <button type="button" class="btn-option t-${qIdx}" onclick="selectGuess(${qIdx}, ${oIdx})">
+                            <span>${opt}</span>
+                        </button>
+                    `).join('')}
+                </div>
+            `).join('');
+        } catch (e) {
+            alert("Invalid quiz link! Redirecting to creator mode...");
+            resetApp();
+        }
+    }
+
+    function selectGuess(qIdx, oIdx) {
+        friendGuesses[qIdx] = oIdx;
+        document.querySelectorAll(`.t-${qIdx}`).forEach((btn, idx) => {
+            btn.classList.toggle('selected', idx === oIdx);
+        });
+        updateTakerProgress();
+    }
+
+    function updateTakerProgress() {
+        const count = Object.keys(friendGuesses).length;
+        const fillPercent = (count / 10) * 100;
+        document.getElementById('takerProgressFill').style.width = fillPercent + '%';
+        document.getElementById('takerProgressText').innerText = `${count} / 10 Guessed`;
+    }
+
+    function calculateScore() {
+        const friendName = document.getElementById('friendName').value.trim();
+        if (!friendName) {
+            alert("Please enter your name first!");
+            return;
+        }
+
+        const count = Object.keys(friendGuesses).length;
+        if (count < 10) {
+            alert(`Please answer all 10 questions! You answered ${count}/10.`);
+            return;
+        }
+
+        let score = 0;
+        const reviewContainer = document.getElementById('reviewContainer');
+        reviewContainer.innerHTML = `<h3 style="color:#fbbf24; margin-bottom:0.8rem;">Question Breakdown:</h3>`;
+
+        window.quizData.questions.forEach((q, idx) => {
+            const correctAnswerIdx = window.quizData.answers[idx];
+            const userGuessIdx = friendGuesses[idx];
+            const isCorrect = (correctAnswerIdx === userGuessIdx);
+
+            if (isCorrect) score++;
+
+            const formattedQ = formatQuestion(q.q, 'taker', window.quizData.gender);
+            const correctAnswerText = q.options[correctAnswerIdx];
+            const userGuessText = q.options[userGuessIdx];
+
+            reviewContainer.innerHTML += `
+                <div class="review-item ${isCorrect ? 'correct' : 'incorrect'}">
+                    <div class="review-q">${idx + 1}. ${formattedQ} ${isCorrect ? '✅' : '❌'}</div>
+                    <div class="review-a">
+                        <strong>${window.quizData.name}'s Choice:</strong> ${correctAnswerText}<br/>
+                        <strong>Your Guess:</strong> ${userGuessText}
+                    </div>
+                </div>
+            `;
+        });
+
+        document.getElementById('takerView').classList.add('hidden');
+        document.getElementById('resultView').classList.remove('hidden');
+        document.getElementById('finalScore').innerText = `${score} / 10`;
+
+        let msg = "";
+        const percentage = (score / 10) * 100;
+
+        if (percentage === 100) {
+            msg = `🔥 Legendary Bond! ${friendName}, do you live inside ${window.quizData.name}'s brain?! You two are absolute soulmates! 💖👑`;
+        } else if (percentage >= 80) {
+            msg = `😎 Amazing job ${friendName}! You know ${window.quizData.name} inside out. Almost a telepathic connection! ✨`;
+        } else if (percentage >= 50) {
+            msg = `👍 Not bad, ${friendName}! You guys talk often, but there are still a few secret habits you missed! 🕵️‍♂️`;
+        } else if (percentage >= 20) {
+            msg = `😅 Oof ${friendName}... Are you guys actually friends or casual acquaintances? Time for a long coffee chat! ☕😂`;
+        } else {
+            msg = `💀 Absolute Stranger Alert! ${friendName}, did you guess these blindfolded?! You know nothing about ${window.quizData.name}! 📉🚪`;
+        }
+
+        document.getElementById('scoreMessage').innerText = msg;
+    }
+
+    function shareWhatsApp() {
+        const url = document.getElementById('shareUrl').value;
+        const text = `How well do you know me? 🤐 Take my 10-question quiz to see your score: ${url}`;
+        window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
+    }
+
+    function copyLink() {
+        const urlEl = document.getElementById('shareUrl');
+        urlEl.select();
+        document.execCommand("copy");
+        alert("Quiz link copied to clipboard!");
+    }
+
+    function resetApp() {
+        window.location.hash = "";
+        location.reload();
+    }
+</script>
+
+</body>
+</html>
+
