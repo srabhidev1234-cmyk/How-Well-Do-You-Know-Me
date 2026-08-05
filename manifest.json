@@ -1,0 +1,20 @@
+{
+  "id": "/math-master/",
+  "name": "How Well Do You Know Me?",
+  "short_name": "KnowMeQuiz",
+  "description": "Test how well your friends and partner know you with custom viral quizzes!",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0f172a",
+  "theme_color": "#ec4899",
+  "icons": [
+    {
+      "src": "./icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
